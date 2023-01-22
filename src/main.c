@@ -6,12 +6,13 @@
 #include "pak.h"
 
 const char *Usage =
-    "[option...] <target> <output>\n"
+    "[option...] <target>\n"
     "Options:\n"
     "  -h, --help                   show this help message and exit.\n"
-    "  -x, --extract                extract files from FILENAME to OUTPUT.\n"
+    "  -x, --extract                extract files from TARGET to OUTPUT.\n"
     "  -c, --compress <algorithm>   use specified compression algorithm (none, zstd, deflate).\n"
     "  -l, --compress-level <level> compression level.\n"
+    "  -o, --output <output>        output file or directory.\n"
     "  -r, --recompress             recompress FILENAME and write to OUTPUT.\n";
 
 const struct option Options[] = {
@@ -19,6 +20,7 @@ const struct option Options[] = {
     {"extract", no_argument, NULL, 'x'},
     {"compression", required_argument, NULL, 'c'},
     {"compression-level", required_argument, NULL, 'l'},
+    {"output", required_argument, NULL, 'o'},
     {"recompress", no_argument, NULL, 'r'},
     {}
 };
@@ -37,7 +39,7 @@ typedef enum {
 int main(int argc, char *argv[]) {
     int ch, optionIndex = 0;
 
-    char *comp_algorithm;
+    char *comp_algorithm, *output;
     int comp_level;
     action_e action = NONE;
 
@@ -58,21 +60,23 @@ int main(int argc, char *argv[]) {
             case 'l':
                 comp_level = atoi(optarg);
                 break;
+            case 'o':
+                output = optarg;
+                break;
             case 'r':
                 action = RECOMPRESS;
                 break;
         }
     }
 
-    if (action == NONE || optind + 2 != argc) {
+    if (optind + 1 != argc) {
         print_usage(argv[0]);
         return -1;
     }
 
-    char *filename = argv[optind++];
-    char *output = argv[optind++];
+    char *target = argv[optind++];
 
-    pak_t *pak = pak_open(filename);
+    pak_t *pak = pak_open(target);
 
     if (!pak)
         return -1;
