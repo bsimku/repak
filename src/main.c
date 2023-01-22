@@ -1,91 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <getopt.h>
 
+#include "args.h"
 #include "pak.h"
 
-const char *Usage =
-    "[option...] <target>\n"
-    "Options:\n"
-    "  -h, --help                   show this help message and exit.\n"
-    "  -x, --extract                extract files from TARGET to OUTPUT.\n"
-    "  -c, --compress <algorithm>   use specified compression algorithm (none, zstd, deflate).\n"
-    "  -l, --compress-level <level> compression level.\n"
-    "  -o, --output <output>        output file or directory.\n"
-    "  -r, --recompress             recompress FILENAME and write to OUTPUT.\n";
-
-const struct option Options[] = {
-    {"help", no_argument, NULL, 'h'},
-    {"extract", no_argument, NULL, 'x'},
-    {"compression", required_argument, NULL, 'c'},
-    {"compression-level", required_argument, NULL, 'l'},
-    {"output", required_argument, NULL, 'o'},
-    {"recompress", no_argument, NULL, 'r'},
-    {}
-};
-
-void print_usage(const char *exec) {
-    fprintf(stderr, "Usage: %s %s", exec, Usage);
-}
-
-typedef enum {
-    COMPRESS,
-    RECOMPRESS,
-    EXTRACT,
-    NONE
-} action_e;
-
 int main(int argc, char *argv[]) {
-    int ch, optionIndex = 0;
+    args_t args;
 
-    char *comp_algorithm, *output;
-    int comp_level;
-    action_e action = NONE;
+    const int ret = args_parse(argc, argv, &args);
 
-    while ((ch = getopt_long(argc, argv, "hxc:l:r", Options, &optionIndex)) != -1) {
-        switch (ch) {
-            default:
-                print_usage(argv[0]);
-                return -1;
-            case 'h':
-                print_usage(argv[0]);
-                return 0;
-            case 'x':
-                action = EXTRACT;
-                break;
-            case 'c':
-                comp_algorithm = optarg;
-                break;
-            case 'l':
-                comp_level = atoi(optarg);
-                break;
-            case 'o':
-                output = optarg;
-                break;
-            case 'r':
-                action = RECOMPRESS;
-                break;
-        }
-    }
+    if (ret != 0)
+        return ret;
 
-    if (optind + 1 != argc) {
-        print_usage(argv[0]);
-        return -1;
-    }
-
-    char *target = argv[optind++];
-
-    pak_t *pak = pak_open(target);
+    pak_t *pak = pak_open(args.target);
 
     if (!pak)
         return -1;
 
-    if (action == RECOMPRESS) {
-        FILE *out_file = fopen(output, "w");
+    if (args.action == RECOMPRESS) {
+        FILE *out_file = fopen(args.output, "w");
 
         if (!out_file) {
-            fprintf(stderr, "failed to open file '%s' for writing.\n", output);
+            fprintf(stderr, "failed to open file '%s' for writing.\n", args.output);
             return -1;
         }
 

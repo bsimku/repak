@@ -1,4 +1,5 @@
 set(SOURCES
+    args.c
     dec.c
     dec_deflate.c
     dec_none.c
