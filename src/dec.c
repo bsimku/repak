@@ -21,30 +21,23 @@ dec_ctx_t *dec_init() {
 }
 
 int dec_stream(dec_ctx_t *ctx, dec_read_callback read, void *opaque, int compress_type, void **data, size_t *size_dec) {
-    switch (compress_type) {
-        default: {
-            fprintf(stderr, "unsupported compression type: %d\n", compress_type);
-            return -1;
-        }
-        case PAK_COMPRESSION_NONE: {
-            if (!ctx->none && !(ctx->none = dec_none_init()))
-                return DEC_ERROR;
+    if (compress_type & PAK_COMPRESSION_DEFLATE) {
+        if (!ctx->deflate && !(ctx->deflate = dec_deflate_init()))
+            return DEC_ERROR;
 
-            return dec_none_stream(ctx->none, read, opaque, data, size_dec);
-        }
-        case PAK_COMPRESSION_DEFLATE: {
-            if (!ctx->deflate && !(ctx->deflate = dec_deflate_init()))
-                return DEC_ERROR;
-
-            return dec_deflate_stream(ctx->deflate, read, opaque, data, size_dec);
-        }
-        case PAK_COMPRESSION_ZSTD: {
-            if (!ctx->zstd && !(ctx->zstd = dec_zstd_init()))
-                return DEC_ERROR;
-
-            return dec_zstd_stream(ctx->zstd, read, opaque, data, size_dec);
-        }
+        return dec_deflate_stream(ctx->deflate, read, opaque, data, size_dec);
     }
+    else if (compress_type & PAK_COMPRESSION_ZSTD) {
+        if (!ctx->zstd && !(ctx->zstd = dec_zstd_init()))
+            return DEC_ERROR;
+
+        return dec_zstd_stream(ctx->zstd, read, opaque, data, size_dec);
+    }
+
+    if (!ctx->none && !(ctx->none = dec_none_init()))
+        return DEC_ERROR;
+
+    return dec_none_stream(ctx->none, read, opaque, data, size_dec);
 }
 
 void dec_free(dec_ctx_t *ctx) {
