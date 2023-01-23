@@ -73,7 +73,12 @@ int dec_deflate_stream(dec_deflate_t *deflate, dec_read_callback read, void *opa
         return DEC_OK;
     }
 
-    return ret == Z_OK ? DEC_OK : DEC_ERROR;
+    if (ret != Z_OK) {
+        fprintf(stderr, "inflate() failed: %d", ret);
+        return DEC_ERROR;
+    }
+
+    return DEC_OK;
 }
 
 void dec_deflate_free(dec_deflate_t *deflate) {
