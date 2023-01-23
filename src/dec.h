@@ -14,7 +14,7 @@ typedef struct {
 } dec_ctx_t;
 
 dec_ctx_t *dec_init();
-int dec_stream(dec_ctx_t *ctx, dec_read_callback read, void *opaque, int compress_type, void **data, size_t *size_dec);
+int dec_stream(dec_ctx_t *ctx, dec_read_callback read, void *opaque, int file_flags, void **data, size_t *size_dec);
 void dec_free(dec_ctx_t *ctx);
 
 #endif

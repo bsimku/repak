@@ -31,6 +31,8 @@ void args_print_usage(const char *exec) {
 int args_parse(int argc, char *argv[], args_t *args) {
     int ch, optionIndex = 0;
 
+    args->action = NONE;
+
     while ((ch = getopt_long(argc, argv, "hxc:l:o:r", Options, &optionIndex)) != -1) {
         switch (ch) {
             default:
@@ -40,7 +42,7 @@ int args_parse(int argc, char *argv[], args_t *args) {
                 args_print_usage(argv[0]);
                 return 0;
             case 'x':
-                args->action = EXTRACT;
+                args->action = UNPACK;
                 break;
             case 'c':
                 args->comp_algorithm = optarg;
@@ -52,7 +54,7 @@ int args_parse(int argc, char *argv[], args_t *args) {
                 args->output = optarg;
                 break;
             case 'r':
-                args->action = RECOMPRESS;
+                args->action = REPACK;
                 break;
         }
     }

@@ -41,10 +41,6 @@ pak_t *pak_open(const char *filename) {
         goto files_error;
     }
 
-    for (uint32_t i = 0; i < pak->header.file_count; i++) {
-        pak->files[i].compression_type &= 0xff;
-    }
-
     return pak;
 
 files_error:
@@ -111,7 +107,7 @@ size_t pak_read(pak_t *pak, pak_file_t *file, FILE *out_file) {
         void *data;
         size_t size;
 
-        ret = dec_stream(pak->dec_ctx, pak_read_callback, &context, file->compression_type, &data, &size);
+        ret = dec_stream(pak->dec_ctx, pak_read_callback, &context, file->flags, &data, &size);
 
         if (ret == DEC_ERROR)
             return 0;
@@ -128,7 +124,7 @@ size_t pak_read(pak_t *pak, pak_file_t *file, FILE *out_file) {
     }
 
     if (total_size != file->size) {
-        fprintf(stderr, "failed reading file: size mismatch.");
+        fprintf(stderr, "failed reading file: size mismatch.\n");
         return 0;
     }
 

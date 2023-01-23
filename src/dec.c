@@ -4,9 +4,7 @@
 #include <string.h>
 #include <errno.h>
 
-#define PAK_COMPRESSION_NONE    0
-#define PAK_COMPRESSION_DEFLATE 1
-#define PAK_COMPRESSION_ZSTD    2
+#include "pak_flags.h"
 
 dec_ctx_t *dec_init() {
     dec_ctx_t *ctx = malloc(sizeof(dec_ctx_t));
@@ -16,18 +14,19 @@ dec_ctx_t *dec_init() {
 
     ctx->deflate = NULL;
     ctx->zstd = NULL;
+    ctx->none = NULL;
 
     return ctx;
 }
 
-int dec_stream(dec_ctx_t *ctx, dec_read_callback read, void *opaque, int compress_type, void **data, size_t *size_dec) {
-    if (compress_type & PAK_COMPRESSION_DEFLATE) {
+int dec_stream(dec_ctx_t *ctx, dec_read_callback read, void *opaque, int file_flags, void **data, size_t *size_dec) {
+    if (file_flags & PAK_FILE_FLAG_DEFLATE) {
         if (!ctx->deflate && !(ctx->deflate = dec_deflate_init()))
             return DEC_ERROR;
 
         return dec_deflate_stream(ctx->deflate, read, opaque, data, size_dec);
     }
-    else if (compress_type & PAK_COMPRESSION_ZSTD) {
+    else if (file_flags & PAK_FILE_FLAG_ZSTD) {
         if (!ctx->zstd && !(ctx->zstd = dec_zstd_init()))
             return DEC_ERROR;
 

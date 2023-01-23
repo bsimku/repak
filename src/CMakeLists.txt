@@ -6,6 +6,7 @@ set(SOURCES
     dec_zstd.c
     main.c
     pak.c
+    repack.c
 )
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})

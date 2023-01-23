@@ -16,12 +16,14 @@ typedef struct pak_header_t {
 } pak_header_t;
 
 typedef struct {
-    uint64_t hash;
+    uint32_t hash_name_lower;
+    uint32_t hash_name_upper;
     uint64_t offset;
     uint64_t size_compressed;
     uint64_t size;
-    uint64_t compression_type;
-    uint64_t dependency_hash;
+    uint64_t flags;
+    uint32_t hash;
+    uint32_t unknown;
 } pak_file_t;
 
 typedef struct {

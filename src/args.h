@@ -3,9 +3,9 @@
 
 typedef struct {
     enum {
-        COMPRESS,
-        RECOMPRESS,
-        EXTRACT,
+        PACK,
+        UNPACK,
+        REPACK,
         NONE
     } action;
 
