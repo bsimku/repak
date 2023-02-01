@@ -12,7 +12,7 @@ const char *Usage =
     "  -c, --compress <algorithm>   use specified compression algorithm (none, zstd, deflate).\n"
     "  -l, --compress-level <level> compression level.\n"
     "  -o, --output <output>        output file or directory.\n"
-    "  -r, --recompress             recompress TARGET and write to OUTPUT.\n";
+    "  -r, --repack                 repack TARGET and write to OUTPUT.\n";
 
 const struct option Options[] = {
     {"help", no_argument, NULL, 'h'},
@@ -20,7 +20,7 @@ const struct option Options[] = {
     {"compression", required_argument, NULL, 'c'},
     {"compression-level", required_argument, NULL, 'l'},
     {"output", required_argument, NULL, 'o'},
-    {"recompress", no_argument, NULL, 'r'},
+    {"repack", no_argument, NULL, 'r'},
     {}
 };
 
