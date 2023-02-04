@@ -1,16 +1,18 @@
 #ifndef ARGS_H
 #define ARGS_H
 
+#include "comp_common.h"
+
 typedef struct {
     enum {
-        PACK,
-        UNPACK,
-        REPACK,
-        NONE
+        ACTION_PACK,
+        ACTION_UNPACK,
+        ACTION_REPACK,
+        ACTION_NONE
     } action;
 
-    int comp_level;
-    char *comp_algorithm;
+    comp_options_t comp_options;
+
     char *target;
     char *output;
 } args_t;

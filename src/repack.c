@@ -29,7 +29,7 @@ int seek(FILE *out_file, size_t offset) {
     return 0;
 }
 
-int write_data(FILE *out_file, pak_t *pak) {
+int write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
     const size_t header_size = sizeof(pak_header_t);
     const size_t files_size = sizeof(pak_file_t) * pak->header.file_count;
 
@@ -49,7 +49,7 @@ int write_data(FILE *out_file, pak_t *pak) {
 
         size_t size;
 
-        if ((size = pak_read(pak, file, out_file)) == 0)
+        if ((size = pak_read(pak, file, options, out_file)) == 0)
             return -1;
 
         for (; i < pak->header.file_count; i++) {
@@ -89,7 +89,7 @@ fwrite_error:
         return -1;
 }
 
-int repack_from_file(const char *input, const char *output) {
+int repack_from_file(const char *input, const char *output, comp_options_t *options) {
     int ret = 0;
 
     pak_t *pak = pak_open(input);
@@ -104,7 +104,7 @@ int repack_from_file(const char *input, const char *output) {
         goto error;
     }
 
-    if (write_data(out_file, pak) < 0)
+    if (write_data(out_file, pak, options) < 0)
         goto error;
 
     if (write_metadata(out_file, pak) < 0)

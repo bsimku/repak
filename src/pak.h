@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "comp.h"
 #include "dec.h"
 
 typedef struct pak_header_t {
@@ -30,11 +31,12 @@ typedef struct {
     FILE *file;
     pak_header_t header;
     pak_file_t *files;
+    comp_ctx_t *comp_ctx;
     dec_ctx_t *dec_ctx;
 } pak_t;
 
 pak_t *pak_open(const char *filename);
-size_t pak_read(pak_t *pak, pak_file_t *file, FILE *out_file);
+size_t pak_read(pak_t *pak, pak_file_t *file, comp_options_t *options, FILE *out_file);
 void pak_close(pak_t *pak);
 
 #endif

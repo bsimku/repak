@@ -11,11 +11,12 @@ int main(int argc, char *argv[]) {
 
     const int ret = args_parse(argc, argv, &args);
 
-    if (ret != 0 || args.action == NONE)
+    if (ret != 0 || args.action == ACTION_NONE)
         return ret;
 
-    if (args.action == REPACK)
-        return repack_from_file(args.target, args.output);
+    if (args.action == ACTION_REPACK) {
+        return repack_from_file(args.target, args.output, &args.comp_options);
+    }
 
     return 0;
 }
