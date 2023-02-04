@@ -9,11 +9,12 @@ const char *Usage =
     "[option...] <target>\n"
     "Options:\n"
     "  -h, --help                   show this help message and exit.\n"
+    "  -r, --repack                 repack TARGET and write to OUTPUT.\n"
     "  -x, --extract                extract files from TARGET to OUTPUT.\n"
     "  -c, --compress <algorithm>   use specified compression algorithm (none, zstd, deflate).\n"
     "  -l, --compress-level <level> compression level.\n"
-    "  -o, --output <output>        output file or directory.\n"
-    "  -r, --repack                 repack TARGET and write to OUTPUT.\n";
+    "  -t, --threads <threads>      number of threads for compression.\n"
+    "  -o, --output <output>        output file or directory.\n";
 
 const struct option Options[] = {
     {"help", no_argument, NULL, 'h'},
@@ -22,6 +23,7 @@ const struct option Options[] = {
     {"compression-level", required_argument, NULL, 'l'},
     {"output", required_argument, NULL, 'o'},
     {"repack", no_argument, NULL, 'r'},
+    {"threads", no_argument, NULL, 't'},
     {}
 };
 
@@ -54,7 +56,7 @@ int args_parse(int argc, char *argv[], args_t *args) {
     args->comp_options.type = COMPRESS_TYPE_NONE;
     args->comp_options.threads = 1;
 
-    while ((ch = getopt_long(argc, argv, "hxc:l:o:r", Options, &optionIndex)) != -1) {
+    while ((ch = getopt_long(argc, argv, "hxc:l:o:rt:", Options, &optionIndex)) != -1) {
         switch (ch) {
             default:
                 args_print_usage(argv[0]);
@@ -80,6 +82,9 @@ int args_parse(int argc, char *argv[], args_t *args) {
                 break;
             case 'r':
                 args->action = ACTION_REPACK;
+                break;
+            case 't':
+                args->comp_options.threads = atoi(optarg);
                 break;
         }
     }
