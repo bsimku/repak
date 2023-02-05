@@ -1,10 +1,10 @@
 #include "pak.h"
 
-#include <memory.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include <errno.h>
+#include <memory.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "comp.h"
 
@@ -110,7 +110,7 @@ size_t pak_read(pak_t *pak, pak_file_t *file, comp_options_t *options, FILE *out
 
     size_t total_size = 0, total_size_compressed = 0;
 
-    while (1) {
+    while (true) {
         void *data;
         size_t size;
 
