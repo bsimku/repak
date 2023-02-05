@@ -1,6 +1,7 @@
 #include "args.h"
 
 #include <getopt.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,12 +50,22 @@ int args_parse_comp_algorithm(const char *algorithm, compress_type_e *type) {
     return 0;
 }
 
+int args_validate(args_t *args) {
+    if (args->action != ACTION_NONE && args->output == NULL) {
+        fprintf(stderr, "Option --output is required for this action.\n");
+        return -1;
+    }
+
+    return 0;
+}
+
 int args_parse(int argc, char *argv[], args_t *args) {
     int ch, optionIndex = 0;
 
     args->action = ACTION_NONE;
     args->comp_options.type = COMPRESS_TYPE_NONE;
     args->comp_options.threads = 1;
+    args->output = NULL;
 
     while ((ch = getopt_long(argc, argv, "hxc:l:o:rt:", Options, &optionIndex)) != -1) {
         switch (ch) {
@@ -95,6 +106,11 @@ int args_parse(int argc, char *argv[], args_t *args) {
     }
 
     args->target = argv[optind++];
+
+    if (args_validate(args) < 0) {
+        args_print_usage(argv[0]);
+        return -1;
+    }
 
     return 0;
 }
