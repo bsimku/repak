@@ -36,7 +36,7 @@ int write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
     if (seek(out_file, header_size + files_size) < 0)
         return -1;
 
-    pak_file_t **files = malloc(sizeof(pak_file_t *) * pak->header.file_count);
+    pak_file_t **files = malloc(files_size);
 
     for (int i = 0; i < pak->header.file_count; i++) {
         files[i] = &pak->files[i];
