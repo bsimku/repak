@@ -12,9 +12,8 @@ int main(int argc, char *argv[]) {
     if (!args_parse(argc, argv, &args) || args.action == ACTION_NONE)
         return 1;
 
-    if (args.action == ACTION_REPACK) {
-        return repack_from_file(args.target, args.output, &args.comp_options);
-    }
+    if (args.action == ACTION_REPACK && !repack_from_file(args.target, args.output, &args.comp_options))
+        return 1;
 
     return 0;
 }

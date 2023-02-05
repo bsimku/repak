@@ -18,15 +18,15 @@ int comp(const void *e1, const void *e2) {
     return (a->flags > b->flags) - (a->flags < b->flags);
 }
 
-int seek(FILE *out_file, size_t offset) {
+bool seek(FILE *out_file, size_t offset) {
     const int ret = fseek(out_file, offset, SEEK_SET);
 
     if (ret < 0) {
         fprintf(stderr, "fseek() failed: %s\n", strerror(ret));
-        return -1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
 void set_compression_flags(pak_file_t *file, compress_type_e type) {
@@ -44,12 +44,12 @@ void set_compression_flags(pak_file_t *file, compress_type_e type) {
     }
 }
 
-int write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
+bool write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
     const size_t header_size = sizeof(pak_header_t);
     const size_t files_size = sizeof(pak_file_t) * pak->header.file_count;
 
-    if (seek(out_file, header_size + files_size) < 0)
-        return -1;
+    if (!seek(out_file, header_size + files_size))
+        return false;
 
     pak_file_t **files = malloc(files_size);
 
@@ -65,7 +65,7 @@ int write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
         size_t size;
 
         if ((size = pak_read(pak, file, options, out_file)) == 0)
-            return -1;
+            return false;
 
         for (; i < pak->header.file_count; i++) {
             pak_file_t *other = files[i];
@@ -80,12 +80,12 @@ int write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
         }
     }
 
-    return 0;
+    return true;
 }
 
 int write_metadata(FILE *out_file, pak_t *pak) {
-    if (seek(out_file, 0) < 0)
-        return -1;
+    if (!seek(out_file, 0))
+        return false;
 
     const size_t header_size = sizeof(pak_header_t);
     const size_t files_size = sizeof(pak_file_t) * pak->header.file_count;
@@ -98,15 +98,15 @@ int write_metadata(FILE *out_file, pak_t *pak) {
     if ((ret = fwrite(pak->files, 1, files_size, out_file)) < 0)
         goto fwrite_error;
 
-    return 0;
+    return true;
 
 fwrite_error:
         fprintf(stderr, "fwrite() failed: %s\n", strerror(ret));
         return -1;
 }
 
-int repack_from_file(const char *input, const char *output, comp_options_t *options) {
-    int ret = 0;
+bool repack_from_file(const char *input, const char *output, comp_options_t *options) {
+    bool ret = true;
 
     pak_t *pak = pak_open(input);
 
@@ -120,10 +120,10 @@ int repack_from_file(const char *input, const char *output, comp_options_t *opti
         goto error;
     }
 
-    if (write_data(out_file, pak, options) < 0)
+    if (!write_data(out_file, pak, options))
         goto error;
 
-    if (write_metadata(out_file, pak) < 0)
+    if (!write_metadata(out_file, pak))
         goto error;
 
 cleanup:
@@ -137,6 +137,6 @@ cleanup:
 
     return ret;
 error:
-    ret = -1;
+    ret = false;
     goto cleanup;
 }
