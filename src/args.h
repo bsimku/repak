@@ -1,6 +1,8 @@
 #ifndef ARGS_H
 #define ARGS_H
 
+#include <stdbool.h>
+
 #include "comp_common.h"
 
 typedef struct {
@@ -17,6 +19,6 @@ typedef struct {
     char *output;
 } args_t;
 
-int args_parse(int argc, char *argv[], args_t *args);
+bool args_parse(int argc, char *argv[], args_t *args);
 
 #endif

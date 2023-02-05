@@ -9,10 +9,8 @@
 int main(int argc, char *argv[]) {
     args_t args;
 
-    const int ret = args_parse(argc, argv, &args);
-
-    if (ret != 0 || args.action == ACTION_NONE)
-        return ret;
+    if (!args_parse(argc, argv, &args) || args.action == ACTION_NONE)
+        return 1;
 
     if (args.action == ACTION_REPACK) {
         return repack_from_file(args.target, args.output, &args.comp_options);

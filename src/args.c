@@ -1,7 +1,6 @@
 #include "args.h"
 
 #include <getopt.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,7 +31,7 @@ void args_print_usage(const char *exec) {
     fprintf(stderr, "Usage: %s %s", exec, Usage);
 }
 
-int args_parse_comp_algorithm(const char *algorithm, compress_type_e *type) {
+bool args_parse_comp_algorithm(const char *algorithm, compress_type_e *type) {
     if (strcmp(algorithm, "zstd") == 0) {
         *type = COMPRESS_TYPE_ZSTD;
     }
@@ -44,22 +43,22 @@ int args_parse_comp_algorithm(const char *algorithm, compress_type_e *type) {
     }
     else {
         fprintf(stderr, "Invalid compression algorithm provided.\n");
-        return -1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
-int args_validate(args_t *args) {
+bool args_validate(args_t *args) {
     if (args->action != ACTION_NONE && args->output == NULL) {
         fprintf(stderr, "Option --output is required for this action.\n");
-        return -1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
-int args_parse(int argc, char *argv[], args_t *args) {
+bool args_parse(int argc, char *argv[], args_t *args) {
     int ch, optionIndex = 0;
 
     args->action = ACTION_NONE;
@@ -71,17 +70,17 @@ int args_parse(int argc, char *argv[], args_t *args) {
         switch (ch) {
             default:
                 args_print_usage(argv[0]);
-                return -1;
+                return false;
             case 'h':
                 args_print_usage(argv[0]);
-                return 0;
+                return true;
             case 'x':
                 args->action = ACTION_UNPACK;
                 break;
             case 'c':
                 if (args_parse_comp_algorithm(optarg, &args->comp_options.type) < 0) {
                     args_print_usage(argv[0]);
-                    return -1;
+                    return false;
                 }
 
                 break;
@@ -102,15 +101,15 @@ int args_parse(int argc, char *argv[], args_t *args) {
 
     if (optind + 1 != argc) {
         args_print_usage(argv[0]);
-        return -1;
+        return false;
     }
 
     args->target = argv[optind++];
 
-    if (args_validate(args) < 0) {
+    if (!args_validate(args)) {
         args_print_usage(argv[0]);
-        return -1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
