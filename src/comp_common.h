@@ -3,8 +3,6 @@
 
 #define COMP_ERROR ((size_t) - 1)
 
-#define COMP_FLAG_END  (1 << 0)
-
 typedef enum {
     COMPRESS_TYPE_NONE,
     COMPRESS_TYPE_DEFLATE,

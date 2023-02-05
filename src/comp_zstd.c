@@ -1,5 +1,6 @@
 #include "comp_zstd.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,7 +38,10 @@ comp_zstd_t *comp_zstd_init(comp_options_t *options) {
     if (!comp_zstd_set_parameter(zstd->ctx, ZSTD_c_compressionLevel, options->level))
         goto error;
 
-    if (!comp_zstd_set_parameter(zstd->ctx, ZSTD_c_nbWorkers, options->threads))
+    if (!comp_zstd_set_parameter(zstd->ctx, ZSTD_c_nbWorkers, 0))
+        goto error;
+
+    if (!comp_zstd_set_parameter(zstd->ctx, ZSTD_c_contentSizeFlag, 0))
         goto error;
 
     return zstd;
@@ -50,12 +54,31 @@ ctx_error:
     return NULL;
 }
 
-size_t comp_zstd_stream(comp_zstd_t *zstd, void *data, size_t size, FILE *out_file, int flags) {
-    const ZSTD_EndDirective mode = flags & COMP_FLAG_END ? ZSTD_e_end : ZSTD_e_continue;
+bool comp_zstd_set_size(comp_zstd_t *zstd, const size_t size) {
+    const size_t ret = ZSTD_CCtx_setPledgedSrcSize(zstd->ctx, size);
+
+    if (ZSTD_isError(ret)) {
+        fprintf(stderr, "ZSTD_CCtx_setPledgedSrcSize() failed: %s\n", ZSTD_getErrorName(ret));
+        return false;
+    }
+
+    zstd->data_size = 0;
+    zstd->total_data_size = size;
+
+    return true;
+}
+
+size_t comp_zstd_stream(comp_zstd_t *zstd, void *data, size_t size, FILE *out_file) {
+    zstd->data_size += size;
 
     zstd->input.src = data;
     zstd->input.size = size;
     zstd->input.pos = 0;
+
+    assert(zstd->data_size <= zstd->total_data_size);
+
+    const ZSTD_EndDirective mode = zstd->data_size == zstd->total_data_size ?
+        ZSTD_e_end : ZSTD_e_continue;
 
     size_t size_compressed = 0;
 

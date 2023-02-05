@@ -103,6 +103,9 @@ bool pak_read_prepare(pak_t *pak, pak_file_t *file, comp_options_t *options) {
     if (!pak->comp_ctx && !(pak->comp_ctx = comp_init()))
         return false;
 
+    if (!comp_set_size(pak->comp_ctx, options, file->size))
+        return false;
+
     return true;
 }
 
@@ -121,7 +124,7 @@ size_t pak_read(pak_t *pak, pak_file_t *file, comp_options_t *options, FILE *out
         void *data;
         size_t size;
 
-        ret = dec_stream(pak->dec_ctx, pak_read_callback, &context, file->flags, &data, &size);
+        const size_t ret = dec_stream(pak->dec_ctx, pak_read_callback, &context, file->flags, &data, &size);
 
         if (ret == DEC_ERROR)
             return 0;
@@ -131,14 +134,12 @@ size_t pak_read(pak_t *pak, pak_file_t *file, comp_options_t *options, FILE *out
 
         total_size += size;
 
-        const int flags = total_size == file->size ? COMP_FLAG_END : 0;
+        const size_t size_comp = comp_stream(pak->comp_ctx, options, data, size, out_file);
 
-        const size_t ret = comp_stream(pak->comp_ctx, options, data, size, out_file, flags);
-
-        if (ret == COMP_ERROR)
+        if (size_comp == COMP_ERROR)
             return 0;
 
-        total_size_compressed += ret;
+        total_size_compressed += size_comp;
     }
 
     if (total_size != file->size) {

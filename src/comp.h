@@ -12,7 +12,8 @@ typedef struct {
 } comp_ctx_t;
 
 comp_ctx_t *comp_init();
-size_t comp_stream(comp_ctx_t *ctx, comp_options_t *options, void *data, size_t size, FILE *out_file, int flags);
+bool comp_set_size(comp_ctx_t *ctx, comp_options_t *options, const size_t size);
+size_t comp_stream(comp_ctx_t *ctx, comp_options_t *options, void *data, size_t size, FILE *out_file);
 void comp_free(comp_ctx_t *ctx);
 
 #endif
