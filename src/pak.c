@@ -89,18 +89,25 @@ int pak_read_callback(void *opaque, size_t buffer_size, void *data, size_t *data
     return DEC_OK;
 }
 
-size_t pak_read(pak_t *pak, pak_file_t *file, comp_options_t *options, FILE *out_file) {
-    int ret;
+bool pak_read_prepare(pak_t *pak, pak_file_t *file, comp_options_t *options) {
+    const int ret = fseek(pak->file, file->offset, SEEK_SET);
 
-    if ((ret = fseek(pak->file, file->offset, SEEK_SET)) < 0) {
+    if (ret < 0) {
         fprintf(stderr, "fseek() failed: %s", strerror(ret));
-        return 0;
+        return false;
     }
 
     if (!pak->dec_ctx && !(pak->dec_ctx = dec_init()))
-        return 0;
+        return false;
 
     if (!pak->comp_ctx && !(pak->comp_ctx = comp_init()))
+        return false;
+
+    return true;
+}
+
+size_t pak_read(pak_t *pak, pak_file_t *file, comp_options_t *options, FILE *out_file) {
+    if (!pak_read_prepare(pak, file, options))
         return 0;
 
     pak_read_context_t context = {
