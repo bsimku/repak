@@ -18,7 +18,7 @@ int comp(const void *e1, const void *e2) {
     return (a->flags > b->flags) - (a->flags < b->flags);
 }
 
-bool seek(FILE *out_file, size_t offset) {
+bool seek(FILE *out_file, const size_t offset) {
     const int ret = fseek(out_file, offset, SEEK_SET);
 
     if (ret < 0) {
@@ -29,7 +29,7 @@ bool seek(FILE *out_file, size_t offset) {
     return true;
 }
 
-void set_compression_flags(pak_file_t *file, compress_type_e type) {
+void set_compression_flags(pak_file_t *file, const compress_type_e type) {
     file->flags = file->flags & ~PAK_FILE_FLAG_DEFLATE & ~PAK_FILE_FLAG_ZSTD;
 
     switch (type) {
@@ -62,9 +62,9 @@ bool write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
     for (int i = 0; i < pak->header.file_count;) {
         pak_file_t *file = files[i];
 
-        size_t size;
+        const size_t size = pak_read(pak, file, options, out_file);
 
-        if ((size = pak_read(pak, file, options, out_file)) == 0)
+        if (size == 0)
             return false;
 
         for (; i < pak->header.file_count; i++) {
