@@ -83,7 +83,7 @@ bool write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
     return true;
 }
 
-int write_metadata(FILE *out_file, pak_t *pak) {
+bool write_metadata(FILE *out_file, pak_t *pak) {
     if (!seek(out_file, 0))
         return false;
 
@@ -101,8 +101,8 @@ int write_metadata(FILE *out_file, pak_t *pak) {
     return true;
 
 fwrite_error:
-        fprintf(stderr, "fwrite() failed: %s\n", strerror(ret));
-        return -1;
+    fprintf(stderr, "fwrite() failed: %s\n", strerror(ret));
+    return false;
 }
 
 bool repack_from_file(const char *input, const char *output, comp_options_t *options) {
