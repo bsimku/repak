@@ -29,6 +29,21 @@ int seek(FILE *out_file, size_t offset) {
     return 0;
 }
 
+void set_compression_flags(pak_file_t *file, compress_type_e type) {
+    file->flags = file->flags & ~PAK_FILE_FLAG_DEFLATE & ~PAK_FILE_FLAG_ZSTD;
+
+    switch (type) {
+        case COMPRESS_TYPE_NONE:
+            break;
+        case COMPRESS_TYPE_DEFLATE:
+            file->flags &= PAK_FILE_FLAG_DEFLATE;
+            break;
+        case COMPRESS_TYPE_ZSTD:
+            file->flags &= PAK_FILE_FLAG_ZSTD;
+            break;
+    }
+}
+
 int write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
     const size_t header_size = sizeof(pak_header_t);
     const size_t files_size = sizeof(pak_file_t) * pak->header.file_count;
@@ -58,9 +73,10 @@ int write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
             if (other->hash != file->hash)
                 break;
 
+            set_compression_flags(other, options->type);
+
             other->offset = ftell(out_file) - size;
             other->size_compressed = size;
-            other->flags = other->flags & ~PAK_FILE_FLAG_DEFLATE & ~PAK_FILE_FLAG_ZSTD;
         }
     }
 
