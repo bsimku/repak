@@ -2,8 +2,8 @@
 
 #include <stdlib.h>
 
-#define IN_BUFFER_SIZE  128
-#define OUT_BUFFER_SIZE 131072
+#define IN_BUFFER_SIZE  131072
+#define OUT_BUFFER_SIZE 524288
 
 dec_deflate_t *dec_deflate_init() {
     dec_deflate_t *deflate = malloc(sizeof(dec_deflate_t));
