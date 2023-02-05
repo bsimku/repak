@@ -21,7 +21,7 @@ typedef struct {
 
 comp_zstd_t *comp_zstd_init(comp_options_t *options);
 bool comp_zstd_set_size(comp_zstd_t *zstd, const size_t size);
-size_t comp_zstd_stream(comp_zstd_t *zstd, void *data, size_t size, FILE *out_file);
+size_t comp_zstd_stream(comp_zstd_t *zstd, comp_write_callback write, void *opaque, void *data, size_t size);
 void comp_zstd_free(comp_zstd_t *zstd);
 
 #endif

@@ -109,6 +109,17 @@ bool pak_read_prepare(pak_t *pak, pak_file_t *file, comp_options_t *options) {
     return true;
 }
 
+bool pak_write_callback(void *opaque, void *data, size_t size) {
+    FILE *out_file = (FILE *)opaque;
+
+    if (fwrite(data, size, 1, out_file) == 0) {
+        fprintf(stderr, "fwrite() failed: %d", ferror(out_file));
+        return false;
+    }
+
+    return true;
+}
+
 size_t pak_read(pak_t *pak, pak_file_t *file, comp_options_t *options, FILE *out_file) {
     if (!pak_read_prepare(pak, file, options))
         return 0;
@@ -132,13 +143,12 @@ size_t pak_read(pak_t *pak, pak_file_t *file, comp_options_t *options, FILE *out
         if (ret == DEC_EOF)
             break;
 
-        total_size += size;
-
-        const size_t size_comp = comp_stream(pak->comp_ctx, options, data, size, out_file);
+        const size_t size_comp = comp_stream(pak->comp_ctx, options, pak_write_callback, out_file, data, size);
 
         if (size_comp == COMP_ERROR)
             return 0;
 
+        total_size += size;
         total_size_compressed += size_comp;
     }
 

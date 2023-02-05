@@ -68,7 +68,7 @@ bool comp_zstd_set_size(comp_zstd_t *zstd, const size_t size) {
     return true;
 }
 
-size_t comp_zstd_stream(comp_zstd_t *zstd, void *data, size_t size, FILE *out_file) {
+size_t comp_zstd_stream(comp_zstd_t *zstd, comp_write_callback write, void *opaque, void *data, size_t size) {
     zstd->data_size += size;
 
     zstd->input.src = data;
@@ -85,19 +85,15 @@ size_t comp_zstd_stream(comp_zstd_t *zstd, void *data, size_t size, FILE *out_fi
     while (zstd->input.pos < zstd->input.size) {
         zstd->output.pos = 0;
 
-        const size_t remaining = ZSTD_compressStream2(zstd->ctx, &zstd->output, &zstd->input, mode);
+        const size_t ret = ZSTD_compressStream2(zstd->ctx, &zstd->output, &zstd->input, mode);
 
-        if (ZSTD_isError(remaining)) {
-            fprintf(stderr, "ZSTD_compressStream2() failed: %s", ZSTD_getErrorName(remaining));
+        if (ZSTD_isError(ret)) {
+            fprintf(stderr, "ZSTD_compressStream2() failed: %s", ZSTD_getErrorName(ret));
             return COMP_ERROR;
         }
 
-        const int ret = fwrite(zstd->output.dst, zstd->output.pos, 1, out_file);
-
-        if (ret < 0) {
-            fprintf(stderr, "fwrite() failed: %s\n", strerror(ret));
+        if (!write(opaque, zstd->output.dst, zstd->output.pos))
             return COMP_ERROR;
-        }
 
         size_compressed += zstd->output.pos;
     }

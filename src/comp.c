@@ -36,15 +36,11 @@ bool comp_set_size(comp_ctx_t *ctx, comp_options_t *options, const size_t size) 
     return true;
 }
 
-size_t comp_stream(comp_ctx_t *ctx, comp_options_t *options, void *data, size_t size, FILE *out_file) {
+size_t comp_stream(comp_ctx_t *ctx, comp_options_t *options, comp_write_callback write, void *opaque, void *data, size_t size) {
     switch (options->type) {
         case COMPRESS_TYPE_NONE: {
-            const int ret = fwrite(data, size, 1, out_file);
-
-            if (ret < 0) {
-                fprintf(stderr, "fwrite() failed: %s\n", strerror(ret));
-                return 0;
-            }
+            if (!write(opaque, data, size))
+                return COMP_ERROR;
 
             return size;
         }
@@ -55,7 +51,7 @@ size_t comp_stream(comp_ctx_t *ctx, comp_options_t *options, void *data, size_t 
             if (!try_init_zstd(ctx, options))
                 return COMP_ERROR;
 
-            return comp_zstd_stream(ctx->zstd, data, size, out_file);
+            return comp_zstd_stream(ctx->zstd, write, opaque, data, size);
     }
 
     return COMP_ERROR;

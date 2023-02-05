@@ -13,7 +13,7 @@ typedef struct {
 
 comp_ctx_t *comp_init();
 bool comp_set_size(comp_ctx_t *ctx, comp_options_t *options, const size_t size);
-size_t comp_stream(comp_ctx_t *ctx, comp_options_t *options, void *data, size_t size, FILE *out_file);
+size_t comp_stream(comp_ctx_t *ctx, comp_options_t *options, comp_write_callback write, void *opaque, void *data, size_t size);
 void comp_free(comp_ctx_t *ctx);
 
 #endif
