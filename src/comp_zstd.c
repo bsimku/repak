@@ -26,7 +26,7 @@ comp_zstd_t *comp_zstd_init(comp_options_t *options) {
         goto ctx_error;
 
     zstd->buffer_out = NULL;
-    zstd->buffer_out_size = ZSTD_DStreamOutSize();
+    zstd->buffer_out_size = ZSTD_CStreamOutSize();
 
     if (!(zstd->buffer_out = malloc(zstd->buffer_out_size)))
         goto error;
