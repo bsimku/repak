@@ -38,7 +38,7 @@ comp_zstd_t *comp_zstd_init(comp_options_t *options) {
     if (!comp_zstd_set_parameter(zstd->ctx, ZSTD_c_compressionLevel, options->level))
         goto error;
 
-    if (!comp_zstd_set_parameter(zstd->ctx, ZSTD_c_nbWorkers, 0))
+    if (!comp_zstd_set_parameter(zstd->ctx, ZSTD_c_nbWorkers, options->threads))
         goto error;
 
     if (!comp_zstd_set_parameter(zstd->ctx, ZSTD_c_contentSizeFlag, 0))
