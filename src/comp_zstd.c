@@ -82,7 +82,7 @@ size_t comp_zstd_stream(comp_zstd_t *zstd, comp_write_callback write, void *opaq
 
     size_t size_compressed = 0;
 
-    while (zstd->input.pos < zstd->input.size) {
+    while (true) {
         zstd->output.pos = 0;
 
         const size_t ret = ZSTD_compressStream2(zstd->ctx, &zstd->output, &zstd->input, mode);
@@ -96,6 +96,12 @@ size_t comp_zstd_stream(comp_zstd_t *zstd, comp_write_callback write, void *opaq
             return COMP_ERROR;
 
         size_compressed += zstd->output.pos;
+
+        if (mode == ZSTD_e_end && ret != 0)
+            continue;
+
+        if (zstd->input.pos == zstd->input.size)
+            break;
     }
 
     return size_compressed;
