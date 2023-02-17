@@ -110,6 +110,9 @@ bool pak_read_prepare(pak_t *pak, pak_file_t *file, comp_options_t *options) {
 }
 
 bool pak_write_callback(void *opaque, void *data, size_t size) {
+    if (!size)
+        return true;
+
     FILE *out_file = (FILE *)opaque;
 
     if (fwrite(data, size, 1, out_file) == 0) {
