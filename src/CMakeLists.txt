@@ -8,6 +8,7 @@ set(SOURCES
     dec_zstd.c
     main.c
     murmur3.c
+    pack.c
     pak.c
     repack.c
 )

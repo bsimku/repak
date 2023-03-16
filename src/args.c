@@ -9,6 +9,7 @@ const char *Usage =
     "[option...] <target>\n"
     "Options:\n"
     "  -h, --help                   show this help message and exit.\n"
+    "  -p, --pack                   pack files from TARGET and write to OUTPUT.\n"
     "  -r, --repack                 repack TARGET and write to OUTPUT.\n"
     "  -x, --extract                extract files from TARGET to OUTPUT.\n"
     "  -c, --compress <algorithm>   use specified compression algorithm (none, zstd, deflate).\n"
@@ -22,6 +23,7 @@ const struct option Options[] = {
     {"compression", required_argument, NULL, 'c'},
     {"compression-level", required_argument, NULL, 'l'},
     {"output", required_argument, NULL, 'o'},
+    {"pack", no_argument, NULL, 'p'},
     {"repack", no_argument, NULL, 'r'},
     {"threads", no_argument, NULL, 't'},
     {}
@@ -78,7 +80,7 @@ bool args_parse(int argc, char *argv[], args_t *args) {
                 args->action = ACTION_UNPACK;
                 break;
             case 'c':
-                if (args_parse_comp_algorithm(optarg, &args->comp_options.type) < 0) {
+                if (!args_parse_comp_algorithm(optarg, &args->comp_options.type)) {
                     args_print_usage(argv[0]);
                     return false;
                 }
@@ -89,6 +91,9 @@ bool args_parse(int argc, char *argv[], args_t *args) {
                 break;
             case 'o':
                 args->output = optarg;
+                break;
+            case 'p':
+                args->action = ACTION_PACK;
                 break;
             case 'r':
                 args->action = ACTION_REPACK;

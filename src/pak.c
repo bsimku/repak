@@ -7,8 +7,43 @@
 #include <string.h>
 
 #include "comp.h"
+#include "murmur3.h"
+#include "pak_flags.h"
 
 #define PAK_MAGIC 0x414b504b // "KPKA"
+
+pak_t *pak_new(const char *filename) {
+    pak_t *pak = malloc(sizeof(pak_t));
+
+    if (!pak)
+        return NULL;
+
+    pak->files = NULL;
+    pak->file_idx = 0;
+    pak->comp_ctx = NULL;
+    pak->dec_ctx = NULL;
+
+    pak->header.magic = PAK_MAGIC;
+    pak->header.version_major = 4;
+    pak->header.version_minor = 0;
+    pak->header.flags = 0;
+    pak->header.file_count = 0;
+    pak->header.hash = 0;
+
+    pak->file = fopen(filename, "w");
+
+    if (!pak->file) {
+        fprintf(stderr, "failed to open '%s' for writing: %s\n", filename, strerror(errno));
+        goto fopen_error;
+    }
+
+    return pak;
+
+fopen_error:
+    free(pak);
+
+    return NULL;
+}
 
 pak_t *pak_open(const char *filename) {
     pak_t *pak = malloc(sizeof(pak_t));
@@ -57,6 +92,136 @@ error:
     return NULL;
 }
 
+void pak_set_compression_flags(pak_file_t *file, const compress_type_e type) {
+    file->flags = file->flags & ~PAK_FILE_FLAG_DEFLATE & ~PAK_FILE_FLAG_ZSTD;
+
+    switch (type) {
+        case COMPRESS_TYPE_NONE:
+            break;
+        case COMPRESS_TYPE_DEFLATE:
+            file->flags &= PAK_FILE_FLAG_DEFLATE;
+            break;
+        case COMPRESS_TYPE_ZSTD:
+            file->flags &= PAK_FILE_FLAG_ZSTD;
+            break;
+    }
+}
+
+bool pak_set_file_count(pak_t *pak, const size_t count) {
+    const size_t size = sizeof(pak_file_t) * count;
+
+    pak->files = malloc(size);
+
+    if (!pak->files)
+        return false;
+
+    if (fseek(pak->file, sizeof(pak->header) + size, SEEK_SET)) {
+        fprintf(stderr, "fseek() failed: %s", strerror(errno));
+        return false;
+    }
+
+    pak->header.file_count = count;
+
+    return true;
+}
+
+bool pak_write_callback(void *opaque, void *data, size_t size) {
+    if (!size)
+        return true;
+
+    FILE *out_file = (FILE *)opaque;
+
+    if (fwrite(data, size, 1, out_file) == 0) {
+        fprintf(stderr, "fwrite() failed: %d\n", ferror(out_file));
+        return false;
+    }
+
+    return true;
+}
+
+bool pak_add_file(pak_t *pak, const char *filename, comp_options_t *options) {
+    if (!pak->dec_ctx && !(pak->dec_ctx = dec_init()))
+        return false;
+
+    if (!pak->comp_ctx && !(pak->comp_ctx = comp_init()))
+        return false;
+
+    FILE *file = fopen(filename, "r");
+
+    if (!file) {
+        fprintf(stderr, "failed to open '%s' for reading: %s\n", filename, strerror(errno));
+        return false;
+    }
+
+    if (fseek(file, 0, SEEK_END)) {
+        fprintf(stderr, "fseek() failed: %s\n", strerror(errno));
+        return false;
+    }
+
+    const size_t size = ftell(file);
+
+    fseek(file, 0, SEEK_SET);
+
+    if (!comp_set_size(pak->comp_ctx, options, size))
+        return false;
+
+    char buf[1024];
+
+    size_t total_size = 0, total_size_comp = 0;
+
+    while (true) {
+        size_t ret = fread(buf, 1, 1024, file);
+
+        if (!ret) {
+            if (feof(file))
+                break;
+
+            return false;
+        }
+
+        const size_t size_comp = comp_stream(pak->comp_ctx, options, pak_write_callback, pak->file, buf, ret);
+
+        if (size_comp == COMP_ERROR)
+            return false;
+
+        total_size += ret;
+        total_size_comp += size_comp;
+    }
+
+    pak_file_t *pak_file = &pak->files[pak->file_idx++];
+
+    pak_file->hash_name_lower = murmur3_32(filename, strlen(filename) -1);
+    pak_file->offset = ftell(file) - total_size_comp;
+    pak_file->size = total_size;
+    pak_file->size_compressed = total_size_comp;
+    pak_file->flags = 0;
+    pak_file->hash = 0;
+    pak_file->unknown = 0;
+
+    pak_set_compression_flags(pak_file, options->type);
+
+    return true;
+}
+
+bool pak_write_metadata(pak_t *pak) {
+    if (fseek(pak->file, 0, SEEK_SET)) {
+        fprintf(stderr, "fseek() failed: %s\n", strerror(errno));
+        return false;
+    }
+
+    if (!fwrite(&pak->header, sizeof(pak->header), 1, pak->file)) {
+        fprintf(stderr, "failed writing header: %s\n", strerror(ferror(pak->file)));
+        return false;
+    }
+
+    if (!fwrite(pak->files, pak->header.file_count * sizeof(pak_file_t), 1, pak->file)) {
+        fprintf(stderr, "failed writing file metadata: %s\n", strerror(ferror(pak->file)));
+        return false;
+    }
+
+    return true;
+}
+
 typedef struct {
     pak_t *pak;
     pak_file_t *file;
@@ -90,10 +255,8 @@ int pak_read_callback(void *opaque, size_t buffer_size, void *data, size_t *data
 }
 
 bool pak_read_prepare(pak_t *pak, pak_file_t *file, comp_options_t *options) {
-    const int ret = fseek(pak->file, file->offset, SEEK_SET);
-
-    if (ret < 0) {
-        fprintf(stderr, "fseek() failed: %s", strerror(ret));
+    if (fseek(pak->file, file->offset, SEEK_SET)) {
+        fprintf(stderr, "fseek() failed: %s", strerror(errno));
         return false;
     }
 
@@ -105,20 +268,6 @@ bool pak_read_prepare(pak_t *pak, pak_file_t *file, comp_options_t *options) {
 
     if (!comp_set_size(pak->comp_ctx, options, file->size))
         return false;
-
-    return true;
-}
-
-bool pak_write_callback(void *opaque, void *data, size_t size) {
-    if (!size)
-        return true;
-
-    FILE *out_file = (FILE *)opaque;
-
-    if (fwrite(data, size, 1, out_file) == 0) {
-        fprintf(stderr, "fwrite() failed: %d", ferror(out_file));
-        return false;
-    }
 
     return true;
 }
