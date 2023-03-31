@@ -99,10 +99,10 @@ void pak_set_compression_flags(pak_file_t *file, const compress_type_e type) {
         case COMPRESS_TYPE_NONE:
             break;
         case COMPRESS_TYPE_DEFLATE:
-            file->flags &= PAK_FILE_FLAG_DEFLATE;
+            file->flags |= PAK_FILE_FLAG_DEFLATE;
             break;
         case COMPRESS_TYPE_ZSTD:
-            file->flags &= PAK_FILE_FLAG_ZSTD;
+            file->flags |= PAK_FILE_FLAG_ZSTD;
             break;
     }
 }
