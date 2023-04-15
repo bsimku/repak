@@ -38,7 +38,7 @@ static bool count_files(const char *directory, size_t *count) {
         char *path = make_path(directory, ent->d_name);
 
         if (!path)
-            return false;
+            goto error;
 
         if (ent->d_type != DT_DIR) {
             (*count)++;
@@ -46,13 +46,19 @@ static bool count_files(const char *directory, size_t *count) {
 
         if (ent->d_type == DT_DIR && !count_files(path, count)) {
             free(path);
-            return false;
+            goto error;
         }
 
         free(path);
     }
 
+    closedir(dir);
+
     return true;
+
+error:
+    closedir(dir);
+    return false;
 }
 
 static bool traverse_add_files(pak_t *pak, const char *directory, comp_options_t *options) {
