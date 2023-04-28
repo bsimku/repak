@@ -4,11 +4,10 @@
 #include <stdio.h>
 #include <string.h>
 
-comp_ctx_t *comp_init() {
-    comp_ctx_t *ctx = malloc(sizeof(comp_ctx_t));
+#include "utils.h"
 
-    if (!ctx)
-        return NULL;
+comp_ctx_t *comp_init() {
+    comp_ctx_t *ctx = safe_alloc(sizeof(comp_ctx_t));
 
     ctx->zstd = NULL;
 

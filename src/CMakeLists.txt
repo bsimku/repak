@@ -11,6 +11,8 @@ set(SOURCES
     pack.c
     pak.c
     repack.c
+    unpack.c
+    utils.c
 )
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})

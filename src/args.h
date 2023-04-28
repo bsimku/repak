@@ -15,6 +15,7 @@ typedef struct {
 
     comp_options_t comp_options;
 
+    char *file_list;
     char *target;
     char *output;
 } args_t;

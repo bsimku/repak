@@ -6,11 +6,10 @@
 
 #include <zstd.h>
 
-dec_zstd_t *dec_zstd_init() {
-    dec_zstd_t *zstd = malloc(sizeof(dec_zstd_t));
+#include "utils.h"
 
-    if (!zstd)
-        return NULL;
+dec_zstd_t *dec_zstd_init() {
+    dec_zstd_t *zstd = safe_alloc(sizeof(dec_zstd_t));
 
     if (!(zstd->ctx = ZSTD_createDCtx()))
         goto error;
@@ -21,11 +20,8 @@ dec_zstd_t *dec_zstd_init() {
     zstd->buffer_in_size = ZSTD_DStreamInSize();
     zstd->buffer_out_size = ZSTD_DStreamOutSize();
 
-    if (!(zstd->buffer_in = malloc(zstd->buffer_in_size)))
-        goto error;
-
-    if (!(zstd->buffer_out = malloc(zstd->buffer_out_size)))
-        goto error;
+    zstd->buffer_in = safe_alloc(zstd->buffer_in_size);
+    zstd->buffer_out = safe_alloc(zstd->buffer_out_size);
 
     zstd->input.src = zstd->buffer_in;
     zstd->input.size = 0;

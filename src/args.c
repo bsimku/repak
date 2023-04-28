@@ -14,6 +14,7 @@ const char *Usage =
     "  -x, --extract                extract files from TARGET to OUTPUT.\n"
     "  -c, --compress <algorithm>   use specified compression algorithm (none, zstd, deflate).\n"
     "  -l, --compress-level <level> compression level.\n"
+    "  -i, --file-list <filename>   file list for unpacking.\n"
     "  -t, --threads <threads>      number of threads for compression.\n"
     "  -o, --output <output>        output file or directory.\n";
 
@@ -22,6 +23,7 @@ const struct option Options[] = {
     {"extract", no_argument, NULL, 'x'},
     {"compression", required_argument, NULL, 'c'},
     {"compression-level", required_argument, NULL, 'l'},
+    {"file-list", required_argument, NULL, 'i'},
     {"output", required_argument, NULL, 'o'},
     {"pack", no_argument, NULL, 'p'},
     {"repack", no_argument, NULL, 'r'},
@@ -57,6 +59,11 @@ bool args_validate(args_t *args) {
         return false;
     }
 
+    if (args->action == ACTION_UNPACK && !args->file_list) {
+        fprintf(stderr, "--file-list is required for --unpack.\n");
+        return false;
+    }
+
     return true;
 }
 
@@ -66,9 +73,11 @@ bool args_parse(int argc, char *argv[], args_t *args) {
     args->action = ACTION_NONE;
     args->comp_options.type = COMPRESS_TYPE_NONE;
     args->comp_options.threads = 1;
+    args->file_list = NULL;
+    args->target = NULL;
     args->output = NULL;
 
-    while ((ch = getopt_long(argc, argv, "hxc:l:o:rt:", Options, &optionIndex)) != -1) {
+    while ((ch = getopt_long(argc, argv, "hxc:l:i:o:rt:", Options, &optionIndex)) != -1) {
         switch (ch) {
             default:
                 args_print_usage(argv[0]);
@@ -88,6 +97,9 @@ bool args_parse(int argc, char *argv[], args_t *args) {
                 break;
             case 'l':
                 args->comp_options.level = atoi(optarg);
+                break;
+            case 'i':
+                args->file_list = optarg;
                 break;
             case 'o':
                 args->output = optarg;

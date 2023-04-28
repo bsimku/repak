@@ -5,12 +5,10 @@
 #include <errno.h>
 
 #include "pak_flags.h"
+#include "utils.h"
 
 dec_ctx_t *dec_init() {
-    dec_ctx_t *ctx = malloc(sizeof(dec_ctx_t));
-
-    if (!ctx)
-        return NULL;
+    dec_ctx_t *ctx = safe_alloc(sizeof(dec_ctx_t));
 
     ctx->deflate = NULL;
     ctx->zstd = NULL;

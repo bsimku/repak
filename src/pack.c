@@ -7,19 +7,7 @@
 #include <sys/types.h>
 
 #include "pak.h"
-
-static char *make_path(const char *directory, const char *name) {
-    char *path = malloc(strlen(directory) + strlen(name) + 2);
-
-    if (!path)
-        return NULL;
-
-    strcpy(path, directory);
-    strcat(path, "/");
-    strcat(path, name);
-
-    return path;
-}
+#include "utils.h"
 
 static bool count_files(const char *directory, size_t *count) {
     DIR *dir = opendir(directory);

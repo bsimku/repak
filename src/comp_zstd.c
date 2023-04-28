@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "utils.h"
+
 bool comp_zstd_set_parameter(ZSTD_CCtx *ctx, ZSTD_cParameter parameter, int value) {
     const int ret = ZSTD_CCtx_setParameter(ctx, parameter, value);
 
@@ -17,19 +19,13 @@ bool comp_zstd_set_parameter(ZSTD_CCtx *ctx, ZSTD_cParameter parameter, int valu
 }
 
 comp_zstd_t *comp_zstd_init(comp_options_t *options) {
-    comp_zstd_t *zstd = malloc(sizeof(comp_zstd_t));
-
-    if (!zstd)
-        return NULL;
+    comp_zstd_t *zstd = safe_alloc(sizeof(comp_zstd_t));
 
     if (!(zstd->ctx = ZSTD_createCCtx()))
         goto ctx_error;
 
-    zstd->buffer_out = NULL;
+    zstd->buffer_out = safe_alloc(zstd->buffer_out_size);
     zstd->buffer_out_size = ZSTD_CStreamOutSize();
-
-    if (!(zstd->buffer_out = malloc(zstd->buffer_out_size)))
-        goto error;
 
     zstd->output.dst = zstd->buffer_out;
     zstd->output.size = zstd->buffer_out_size;

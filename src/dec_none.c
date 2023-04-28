@@ -2,22 +2,16 @@
 
 #include <stdlib.h>
 
+#include "utils.h"
+
 #define BUFFER_SIZE 131072
 
 dec_none_t *dec_none_init() {
-    dec_none_t *none = malloc(sizeof(dec_none_t));
+    dec_none_t *none = safe_alloc(sizeof(dec_none_t));
 
-    if (!none)
-        return NULL;
-
-    if (!(none->buffer = malloc(BUFFER_SIZE)))
-        goto error;
+    none->buffer = safe_alloc(BUFFER_SIZE);
 
     return none;
-
-error:
-    free(none);
-    return NULL;
 }
 
 int dec_none_stream(dec_none_t *none, dec_read_callback read, void *opaque, void **data, size_t *size_dec) {

@@ -9,14 +9,12 @@
 #include "comp.h"
 #include "murmur3.h"
 #include "pak_flags.h"
+#include "utils.h"
 
 #define PAK_MAGIC 0x414b504b // "KPKA"
 
 pak_t *pak_new(const char *filename) {
-    pak_t *pak = malloc(sizeof(pak_t));
-
-    if (!pak)
-        return NULL;
+    pak_t *pak = safe_alloc(sizeof(pak_t));
 
     pak->files = NULL;
     pak->file_idx = 0;
@@ -46,10 +44,7 @@ fopen_error:
 }
 
 pak_t *pak_open(const char *filename) {
-    pak_t *pak = malloc(sizeof(pak_t));
-
-    if (!pak)
-        return NULL;
+    pak_t *pak = safe_alloc(sizeof(pak_t));
 
     pak->dec_ctx = NULL;
     pak->comp_ctx = NULL;
@@ -71,10 +66,7 @@ pak_t *pak_open(const char *filename) {
         goto header_error;
     }
 
-    pak->files = malloc(sizeof(pak_file_t) * pak->header.file_count);
-
-    if (!pak->files)
-        return NULL;
+    pak->files = safe_alloc(sizeof(pak_file_t) * pak->header.file_count);
 
     if (fread(pak->files, sizeof(pak_file_t), pak->header.file_count, pak->file) != pak->header.file_count) {
         fprintf(stderr, "failed to read file metadata.\n");
@@ -110,10 +102,7 @@ void pak_set_compression_flags(pak_file_t *file, const compress_type_e type) {
 bool pak_set_file_count(pak_t *pak, const size_t count) {
     const size_t size = sizeof(pak_file_t) * count;
 
-    pak->files = malloc(size);
-
-    if (!pak->files)
-        return false;
+    pak->files = safe_alloc(size);
 
     if (fseek(pak->file, sizeof(pak->header) + size, SEEK_SET)) {
         fprintf(stderr, "fseek() failed: %s", strerror(errno));

@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "pak_flags.h"
+#include "utils.h"
 
 int comp(const void *e1, const void *e2) {
     const pak_file_t *a = *(const pak_file_t **)e1;
@@ -36,7 +37,7 @@ bool write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
     if (!seek(out_file, header_size + files_size))
         return false;
 
-    pak_file_t **files = malloc(files_size);
+    pak_file_t **files = safe_alloc(files_size);
 
     for (int i = 0; i < pak->header.file_count; i++) {
         files[i] = &pak->files[i];

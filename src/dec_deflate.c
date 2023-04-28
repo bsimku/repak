@@ -2,23 +2,16 @@
 
 #include <stdlib.h>
 
+#include "utils.h"
+
 #define IN_BUFFER_SIZE  131072
 #define OUT_BUFFER_SIZE 524288
 
 dec_deflate_t *dec_deflate_init() {
-    dec_deflate_t *deflate = malloc(sizeof(dec_deflate_t));
+    dec_deflate_t *deflate = safe_alloc(sizeof(dec_deflate_t));
 
-    if (!deflate)
-        return NULL;
-
-    deflate->in_buffer = NULL;
-    deflate->out_buffer = NULL;
-
-    if (!(deflate->in_buffer = malloc(IN_BUFFER_SIZE)))
-        goto error;
-
-    if (!(deflate->out_buffer = malloc(OUT_BUFFER_SIZE)))
-        goto error;
+    deflate->in_buffer = safe_alloc(IN_BUFFER_SIZE);
+    deflate->out_buffer = safe_alloc(OUT_BUFFER_SIZE);
 
     deflate->stream.zalloc = Z_NULL;
     deflate->stream.zfree = Z_NULL;
