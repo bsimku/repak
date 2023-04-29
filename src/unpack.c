@@ -47,6 +47,9 @@ static struct file_list *read_file_list(const char *filename) {
     size_t path_length = 0, entry_idx = 0;
 
     for (char ch; !feof(file); ch = fgetc(file)) {
+        if (ch == '\0')
+            continue;
+
         if (ch == '\n') {
             path[path_length++] = '\0';
 
@@ -221,12 +224,22 @@ bool unpack_files(const char *input, const char *output_dir, const char *file_li
     for (int i = 0; i < pak->header.file_count; i++) {
         pak_file_t *file = &pak->files[i];
 
+        bool found = false;
+
         for (size_t i = 0; i < list->length; i++) {
             if (list->entries[i].hash != file->hash_name_lower)
                 continue;
 
+            fprintf(stderr, "%s %u\n", list->entries[i].path, file->size);
+
             if (!unpack_file(pak, file, list->entries[i].path, output_dir))
                 goto error;
+
+            found = true;
+        }
+
+        if (!found) {
+            printf("hash not found: %u\n", file->hash_name_lower);
         }
     }
 

@@ -24,8 +24,8 @@ comp_zstd_t *comp_zstd_init(comp_options_t *options) {
     if (!(zstd->ctx = ZSTD_createCCtx()))
         goto ctx_error;
 
-    zstd->buffer_out = safe_alloc(zstd->buffer_out_size);
     zstd->buffer_out_size = ZSTD_CStreamOutSize();
+    zstd->buffer_out = safe_alloc(zstd->buffer_out_size);
 
     zstd->output.dst = zstd->buffer_out;
     zstd->output.size = zstd->buffer_out_size;
