@@ -1,7 +1,8 @@
 #include "murmur3.h"
 
-#include <string.h>
 #include <arpa/inet.h>
+#include <ctype.h>
+#include <string.h>
 
 #include "stdio.h"
 
@@ -27,11 +28,12 @@ static uint32_t murmur3_32_finalize(uint32_t hash) {
     return hash;
 }
 
-uint32_t murmur3_32(const char *key, size_t length) {
+static uint32_t murmur3_32(const char *key, size_t length, bool upper) {
     uint32_t hash = 0xffffffff;
 
     for (size_t i = 0; i < length - 1; i += 2) {
-        uint32_t k = key[i] | key[i + 1] << 16;
+        uint32_t k = upper ? (toupper(key[i]) | toupper(key[i + 1]) << 16)
+            : (key[i] | key[i + 1] << 16);
 
         hash ^= murmur3_32_scramble(k);
         hash = rotl32(hash, 13);
@@ -39,10 +41,19 @@ uint32_t murmur3_32(const char *key, size_t length) {
     }
 
     if (length % 2) {
-        hash ^= murmur3_32_scramble(key[length - 1]);
+        hash ^= murmur3_32_scramble(upper ? toupper(key[length - 1]) : key[length - 1]);
     }
 
     hash ^= length * 2;
 
     return murmur3_32_finalize(hash);
 }
+
+uint32_t murmur3(const char *key, size_t length) {
+    return murmur3_32(key, length, false);
+}
+
+uint32_t murmur3_upper(const char *key, size_t length) {
+    return murmur3_32(key, length, true);
+}
+

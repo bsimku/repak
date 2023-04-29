@@ -50,7 +50,7 @@ static struct file_list *read_file_list(const char *filename) {
         if (ch == '\n') {
             path[path_length++] = '\0';
 
-            entries[entry_idx].hash = murmur3_32(path, path_length - 1);
+            entries[entry_idx].hash = murmur3(path, path_length - 1);
             entries[entry_idx].path = safe_alloc(path_length);
 
             memcpy(entries[entry_idx].path, path, path_length);

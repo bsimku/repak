@@ -179,7 +179,10 @@ bool pak_add_file(pak_t *pak, const char *filename, comp_options_t *options) {
 
     pak_file_t *pak_file = &pak->files[pak->file_idx++];
 
-    pak_file->hash_name_lower = murmur3_32(filename, strlen(filename) -1);
+    size_t len = strlen(filename);
+
+    pak_file->hash_name_lower = murmur3(filename, len);
+    pak_file->hash_name_upper = murmur3_upper(filename, len);
     pak_file->offset = ftell(file) - total_size_comp;
     pak_file->size = total_size;
     pak_file->size_compressed = total_size_comp;
