@@ -12,6 +12,7 @@
 #include "utils.h"
 
 #define PAK_MAGIC 0x414b504b // "KPKA"
+#define READ_BUFFER_SIZE 1048576
 
 pak_t *pak_new(const char *filename) {
     pak_t *pak = safe_alloc(sizeof(pak_t));
@@ -157,12 +158,12 @@ bool pak_add_file(pak_t *pak, const char *filename, comp_options_t *options) {
     if (!comp_set_size(pak->comp_ctx, options, size))
         return false;
 
-    char buf[1024];
+    char buf[READ_BUFFER_SIZE];
 
     size_t total_size = 0, total_size_comp = 0;
 
     while (true) {
-        size_t ret = fread(buf, 1, 1024, file);
+        size_t ret = fread(buf, 1, READ_BUFFER_SIZE, file);
 
         if (!ret) {
             if (feof(file))
