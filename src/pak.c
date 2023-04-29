@@ -149,7 +149,10 @@ bool pak_add_file(pak_t *pak, const char *filename, comp_options_t *options) {
 
     const size_t size = ftell(file);
 
-    fseek(file, 0, SEEK_SET);
+    if (fseek(file, 0, SEEK_SET)) {
+        fprintf(stderr, "fseek() failed: %s\n", strerror(errno));
+        return false;
+    }
 
     if (!comp_set_size(pak->comp_ctx, options, size))
         return false;
