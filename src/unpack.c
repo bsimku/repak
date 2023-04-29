@@ -36,10 +36,7 @@ static struct file_list *read_file_list(const char *filename) {
         }
     }
 
-    if (fseek(file, 0, SEEK_SET) == -1) {
-        fprintf(stderr, "fseek() failed: %s\n", strerror(errno));
-        goto file_error;
-    }
+    rewind(file);
 
     struct file_entry *entries = safe_alloc(sizeof(struct file_entry) * entry_count);
 
@@ -67,7 +64,7 @@ static struct file_list *read_file_list(const char *filename) {
             }
             else {
                 fprintf(stderr, "error reading '%s': file path entry too long.\n", filename);
-                goto read_error;
+                goto error;
             }
         }
     }
@@ -79,14 +76,13 @@ static struct file_list *read_file_list(const char *filename) {
 
     return list;
 
-read_error:
+error:
     for (size_t i = 0; i < entry_idx; i++) {
         free(entries[i].path);
     }
 
     free(entries);
 
-file_error:
     fclose(file);
 
     return NULL;
