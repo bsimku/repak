@@ -150,10 +150,7 @@ bool pak_add_file(pak_t *pak, const char *filename, comp_options_t *options) {
 
     const size_t size = ftell(file);
 
-    if (fseek(file, 0, SEEK_SET)) {
-        fprintf(stderr, "fseek() failed: %s\n", strerror(errno));
-        return false;
-    }
+    rewind(file);
 
     if (!comp_set_size(pak->comp_ctx, options, size))
         return false;
@@ -200,10 +197,7 @@ bool pak_add_file(pak_t *pak, const char *filename, comp_options_t *options) {
 }
 
 bool pak_write_metadata(pak_t *pak) {
-    if (fseek(pak->file, 0, SEEK_SET)) {
-        fprintf(stderr, "fseek() failed: %s\n", strerror(errno));
-        return false;
-    }
+    rewind(pak->file);
 
     if (!fwrite(&pak->header, sizeof(pak->header), 1, pak->file)) {
         fprintf(stderr, "failed writing header: %s\n", strerror(ferror(pak->file)));
