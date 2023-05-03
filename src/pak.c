@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "comp.h"
 #include "murmur3.h"
@@ -136,24 +137,22 @@ bool pak_add_file(pak_t *pak, const char *filename, comp_options_t *options) {
     if (!pak->comp_ctx && !(pak->comp_ctx = comp_init()))
         return false;
 
+    struct stat st;
+
+    if (stat(filename, &st) == -1) {
+        fprintf(stderr, "failed to stat '%s': %s", filename, strerror(errno));
+        return false;
+    }
+
+    if (!comp_set_size(pak->comp_ctx, options, st.st_size))
+        return false;
+
     FILE *file = fopen(filename, "r");
 
     if (!file) {
         fprintf(stderr, "failed to open '%s' for reading: %s\n", filename, strerror(errno));
         return false;
     }
-
-    if (fseek(file, 0, SEEK_END)) {
-        fprintf(stderr, "fseek() failed: %s\n", strerror(errno));
-        return false;
-    }
-
-    const size_t size = ftell(file);
-
-    rewind(file);
-
-    if (!comp_set_size(pak->comp_ctx, options, size))
-        return false;
 
     char buf[READ_BUFFER_SIZE];
 
