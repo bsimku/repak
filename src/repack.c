@@ -7,7 +7,7 @@
 #include "pak_flags.h"
 #include "utils.h"
 
-int comp(const void *e1, const void *e2) {
+static int comp(const void *e1, const void *e2) {
     const pak_file_t *a = *(const pak_file_t **)e1;
     const pak_file_t *b = *(const pak_file_t **)e2;
 
@@ -19,7 +19,7 @@ int comp(const void *e1, const void *e2) {
     return (a->flags > b->flags) - (a->flags < b->flags);
 }
 
-bool seek(FILE *out_file, const size_t offset) {
+static bool seek(FILE *out_file, const size_t offset) {
     const int ret = fseek(out_file, offset, SEEK_SET);
 
     if (ret < 0) {
@@ -30,7 +30,7 @@ bool seek(FILE *out_file, const size_t offset) {
     return true;
 }
 
-bool write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
+static bool write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
     const size_t header_size = sizeof(pak_header_t);
     const size_t files_size = sizeof(pak_file_t) * pak->header.file_count;
 
@@ -69,7 +69,7 @@ bool write_data(FILE *out_file, pak_t *pak, comp_options_t *options) {
     return true;
 }
 
-bool write_metadata(FILE *out_file, pak_t *pak) {
+static bool write_metadata(FILE *out_file, pak_t *pak) {
     if (!seek(out_file, 0))
         return false;
 

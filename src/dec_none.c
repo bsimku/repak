@@ -24,4 +24,3 @@ void dec_none_free(dec_none_t *none) {
     free(none->buffer);
     free(none);
 }
-

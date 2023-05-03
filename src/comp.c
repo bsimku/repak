@@ -6,19 +6,19 @@
 
 #include "utils.h"
 
+static bool try_init_zstd(comp_ctx_t *ctx, comp_options_t *options) {
+    if (ctx->zstd)
+        return true;
+
+    return (ctx->zstd = comp_zstd_init(options));
+}
+
 comp_ctx_t *comp_init() {
     comp_ctx_t *ctx = safe_alloc(sizeof(comp_ctx_t));
 
     ctx->zstd = NULL;
 
     return ctx;
-}
-
-bool try_init_zstd(comp_ctx_t *ctx, comp_options_t *options) {
-    if (ctx->zstd)
-        return true;
-
-    return (ctx->zstd = comp_zstd_init(options));
 }
 
 bool comp_set_size(comp_ctx_t *ctx, comp_options_t *options, const size_t size) {

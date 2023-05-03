@@ -31,11 +31,11 @@ const struct option Options[] = {
     {}
 };
 
-void args_print_usage(const char *exec) {
+static void print_usage(const char *exec) {
     fprintf(stderr, "Usage: %s %s", exec, Usage);
 }
 
-bool args_parse_comp_algorithm(const char *algorithm, compress_type_e *type) {
+static bool parse_comp_algorithm(const char *algorithm, compress_type_e *type) {
     if (strcmp(algorithm, "zstd") == 0) {
         *type = COMPRESS_TYPE_ZSTD;
     }
@@ -53,7 +53,7 @@ bool args_parse_comp_algorithm(const char *algorithm, compress_type_e *type) {
     return true;
 }
 
-bool args_validate(args_t *args) {
+static bool validate(args_t *args) {
     if (args->action != ACTION_NONE && args->output == NULL) {
         fprintf(stderr, "Option --output is required for this action.\n");
         return false;
@@ -80,17 +80,17 @@ bool args_parse(int argc, char *argv[], args_t *args) {
     while ((ch = getopt_long(argc, argv, "hxc:l:i:o:rt:", Options, &optionIndex)) != -1) {
         switch (ch) {
             default:
-                args_print_usage(argv[0]);
+                print_usage(argv[0]);
                 return false;
             case 'h':
-                args_print_usage(argv[0]);
+                print_usage(argv[0]);
                 return true;
             case 'x':
                 args->action = ACTION_UNPACK;
                 break;
             case 'c':
-                if (!args_parse_comp_algorithm(optarg, &args->comp_options.type)) {
-                    args_print_usage(argv[0]);
+                if (!parse_comp_algorithm(optarg, &args->comp_options.type)) {
+                    print_usage(argv[0]);
                     return false;
                 }
 
@@ -117,14 +117,14 @@ bool args_parse(int argc, char *argv[], args_t *args) {
     }
 
     if (optind + 1 != argc) {
-        args_print_usage(argv[0]);
+        print_usage(argv[0]);
         return false;
     }
 
     args->target = argv[optind++];
 
-    if (!args_validate(args)) {
-        args_print_usage(argv[0]);
+    if (!validate(args)) {
+        print_usage(argv[0]);
         return false;
     }
 

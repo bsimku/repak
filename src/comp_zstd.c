@@ -7,7 +7,7 @@
 
 #include "utils.h"
 
-bool comp_zstd_set_parameter(ZSTD_CCtx *ctx, ZSTD_cParameter parameter, int value) {
+static bool set_zstd_param(ZSTD_CCtx *ctx, ZSTD_cParameter parameter, int value) {
     const int ret = ZSTD_CCtx_setParameter(ctx, parameter, value);
 
     if (ZSTD_isError(ret)) {
@@ -31,13 +31,13 @@ comp_zstd_t *comp_zstd_init(comp_options_t *options) {
     zstd->output.size = zstd->buffer_out_size;
     zstd->output.pos = 0;
 
-    if (!comp_zstd_set_parameter(zstd->ctx, ZSTD_c_compressionLevel, options->level))
+    if (!set_zstd_param(zstd->ctx, ZSTD_c_compressionLevel, options->level))
         goto error;
 
-    if (!comp_zstd_set_parameter(zstd->ctx, ZSTD_c_nbWorkers, options->threads))
+    if (!set_zstd_param(zstd->ctx, ZSTD_c_nbWorkers, options->threads))
         goto error;
 
-    if (!comp_zstd_set_parameter(zstd->ctx, ZSTD_c_contentSizeFlag, 0))
+    if (!set_zstd_param(zstd->ctx, ZSTD_c_contentSizeFlag, 0))
         goto error;
 
     return zstd;

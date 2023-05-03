@@ -116,7 +116,7 @@ bool pak_set_file_count(pak_t *pak, const size_t count) {
     return true;
 }
 
-bool pak_write_callback(void *opaque, void *data, size_t size) {
+static bool write_callback(void *opaque, void *data, size_t size) {
     if (!size)
         return true;
 
@@ -168,7 +168,7 @@ bool pak_add_file(pak_t *pak, const char *filename, comp_options_t *options) {
             return false;
         }
 
-        const size_t size_comp = comp_stream(pak->comp_ctx, options, pak_write_callback, pak->file, buf, ret);
+        const size_t size_comp = comp_stream(pak->comp_ctx, options, write_callback, pak->file, buf, ret);
 
         if (size_comp == COMP_ERROR)
             return false;
@@ -284,7 +284,7 @@ size_t pak_read(pak_t *pak, pak_file_t *file, comp_options_t *options, FILE *out
         if (ret == DEC_EOF)
             break;
 
-        const size_t size_comp = comp_stream(pak->comp_ctx, options, pak_write_callback, out_file, data, size);
+        const size_t size_comp = comp_stream(pak->comp_ctx, options, write_callback, out_file, data, size);
 
         if (size_comp == COMP_ERROR)
             return 0;
